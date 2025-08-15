@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 )
@@ -25,12 +24,7 @@ type Device struct {
 	UUID string
 }
 
-type Request struct {
-	Path string
-	Data any // serializable to JSON dict
-}
-
-func (d *Device) Fetch(c context.Context, p string, in, out any) (err error) {
+func (d *Device) Do(c context.Context, p string, in, out any) (err error) {
 	protocol := "http"
 	client := http.DefaultClient
 
@@ -55,8 +49,9 @@ func (d *Device) Fetch(c context.Context, p string, in, out any) (err error) {
 			return fmt.Errorf("cannot send unknown type")
 		}
 		values := fe.forEncode()
+
+		// TODO: only works with UUID?
 		u.RawQuery = values.Encode()
-		log.Printf("got query: %s", u.String())
 	}
 
 	request, err := http.NewRequestWithContext(c, method, u.String(), http.NoBody)
@@ -75,7 +70,6 @@ func (d *Device) Fetch(c context.Context, p string, in, out any) (err error) {
 	if err != nil {
 		return err
 	}
-	log.Printf("got raw out\n%s len=%d", string(b), len(b))
 
 	return parseValues(b, out)
 }

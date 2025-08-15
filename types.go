@@ -32,12 +32,18 @@ func (j *ControlPower) UnmarshalJSON(b []byte) (err error) {
 type FanDir int
 
 var (
-	Vertical   = FanDir(1)
-	Horizontal = FanDir(2)
-	Both       = FanDir(3)
+	FanNone       = FanDir(0)
+	FanVertical   = FanDir(1)
+	FanHorizontal = FanDir(2)
+	FanBoth       = FanDir(3)
 )
 
 type FanRate int
+
+var (
+	FanAuto  = FanRate(1)
+	FanQuiet = FanRate(2)
+)
 
 func (j *FanRate) UnmarshalJSON(b []byte) (err error) {
 	if bytes.Equal(b, []byte(`"A"`)) {
@@ -64,9 +70,19 @@ func (j *FanRate) encode() string {
 	return strconv.Itoa(int(*j))
 }
 
+type Mode int
+
+var (
+	ModeAuto = Mode(0)
+	ModeDry  = Mode(2)
+	ModeCool = Mode(3)
+	ModeHeat = Mode(4)
+	ModeFan  = Mode(6)
+)
+
 type ControlInfo struct {
 	Power       ControlPower `json:"pow"`
-	Mode        int          `json:"mode"`
+	Mode        Mode         `json:"mode"`
 	SetTemp     float32      `json:"stemp"`
 	SetHumidity float32      `json:"shum"`
 	FanRate     FanRate      `json:"f_rate"`
@@ -85,7 +101,7 @@ func (ci *ControlInfo) forEncode() (v url.Values) {
 	} else {
 		v.Set("pow", "0")
 	}
-	v.Set("mode", strconv.Itoa(ci.Mode))
+	v.Set("mode", strconv.Itoa(int(ci.Mode)))
 	v.Set("stemp", fmt.Sprintf("%.1f", ci.SetTemp))
 	v.Set("shum", strconv.Itoa(int(ci.SetHumidity)))
 	v.Set("f_rate", ci.FanRate.encode())

@@ -29,26 +29,26 @@ func main() {
 	// 	defer cancel()
 
 	// 	var bi daikinac.BasicInfo
-	// 	err = d.Fetch(ctx, "/common/basic_info", nil, &bi)
+	// 	err = d.Do(ctx, "/common/basic_info", nil, &bi)
 	// 	log.Printf("fetched info: %+v err=%v", bi, err)
 
 	// 	var c daikinac.ControlInfo
-	// 	err = d.Fetch(ctx, "/aircon/get_control_info", nil, &c)
+	// 	err = d.Do(ctx, "/aircon/get_control_info", nil, &c)
 	// 	log.Printf("fetched control: %+v err=%v", c, err)
 
 	// 	var s daikinac.SensorInfo
-	// 	err = d.Fetch(ctx, "/aircon/get_sensor_info", nil, &s)
+	// 	err = d.Do(ctx, "/aircon/get_sensor_info", nil, &s)
 	// 	log.Printf("fetched sensor: %+v err=%v", s, err)
 	// }
 
 	officeDevice := daikinac.Device{Host: "192.168.3.245", UUID: "f45aab28604811eca7c4737954d1686f"}
 
-	err := officeDevice.Fetch(context.TODO(), "/aircon/set_control_info", &daikinac.ControlInfo{
+	err := officeDevice.Do(context.TODO(), "/aircon/set_control_info", &daikinac.ControlInfo{
 		Power:   daikinac.Off,
-		Mode:    4,
+		Mode:    daikinac.ModeHeat,
 		SetTemp: 23.0,
-		FanRate: 1,
-		FanDir:  0,
+		FanRate: daikinac.FanAuto,
+		FanDir:  daikinac.FanNone,
 	}, nil)
 	log.Printf("control failure: %v", err)
 
