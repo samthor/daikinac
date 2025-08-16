@@ -9,26 +9,20 @@ import (
 	"net/url"
 )
 
-/*
-  const daikinConfig: Record<string, { name: string; at: string }> = {
-    bedroom: { name: 'Bedroom', at: '192.168.3.204' },
-    loft: { name: 'Loft', at: '192.168.3.225' },
-    'living-room': { name: 'Living Room', at: '192.168.3.152' },
-    den: { name: 'Den', at: '192.168.3.146' },
-    office: { name: 'Office', at: '192.168.3.245/f45aab28604811eca7c4737954d1686f' },
-  };
-*/
-
+// Device is a split-system provided by Daikin.
 type Device struct {
-	Host string
-	UUID string
+	Host string // IP or hostname
+	UUID string // UUID from modern devices: part of registration flow
 }
 
+// Do performs a request to the device.
+// If out is non-nil, the output keys/values will be encoded there "as JSON".
 func (d *Device) Do(c context.Context, p string, in, out any) (err error) {
 	protocol := "http"
 	client := http.DefaultClient
 
 	if d.UUID != "" {
+		// Daikin has a self-signed cert but we don't know what it is so :shrug:
 		protocol = "https"
 		client = &http.Client{
 			Transport: &http.Transport{
@@ -43,17 +37,17 @@ func (d *Device) Do(c context.Context, p string, in, out any) (err error) {
 	}
 	method := http.MethodGet
 
+	// pass values
 	if in != nil {
 		fe, ok := in.(daikinEncode)
 		if !ok {
 			return fmt.Errorf("cannot send unknown type")
 		}
-		values := fe.forEncode()
-
-		// TODO: only works with UUID?
+		values := fe.asValues()
 		u.RawQuery = values.Encode()
 	}
 
+	// do thing!
 	request, err := http.NewRequestWithContext(c, method, u.String(), http.NoBody)
 	if err != nil {
 		return err
@@ -71,5 +65,14 @@ func (d *Device) Do(c context.Context, p string, in, out any) (err error) {
 		return err
 	}
 
-	return parseValues(b, out)
+	v, err := parseValues(b)
+	if err != nil || out == nil {
+		return err
+	}
+
+	fd, ok := out.(daikinDecode)
+	if !ok {
+		return fmt.Errorf("can't parse into unknown type")
+	}
+	return fd.fromValues(v)
 }

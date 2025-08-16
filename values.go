@@ -2,14 +2,12 @@ package daikinac
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"strconv"
-	"strings"
+	"net/url"
 )
 
-func parseValues(b []byte, target any) (err error) {
-	tmp := make(map[string]any)
+func parseValues(b []byte) (v url.Values, err error) {
+	v = make(url.Values)
 
 	pairs := bytes.Split(b, []byte(","))
 	for _, pair := range pairs {
@@ -17,31 +15,21 @@ func parseValues(b []byte, target any) (err error) {
 		key := string(parts[0])
 
 		if len(parts) != 2 {
-			tmp[key] = ""
+			v.Set(key, "")
 			continue
 		}
 
 		value := string(parts[1])
 		if value == "-" {
 			continue
-		} else if strings.ContainsRune(value, '_') {
-			// ok
-		} else if f, err := strconv.ParseFloat(value, 32); err == nil {
-			tmp[key] = f
-			continue
-		} else {
-			// ok
 		}
-		tmp[key] = value
+		v.Set(key, value)
 	}
 
-	if tmp["ret"] != "OK" {
-		return fmt.Errorf("err=%v", tmp["ret"])
+	if v.Get("ret") != "OK" {
+		return nil, fmt.Errorf("err=%v", v.Get("ret"))
 	}
 
-	btmp, _ := json.Marshal(tmp)
-	if target != nil {
-		return json.Unmarshal(btmp, target)
-	}
-	return nil
+	// log.Printf("got raw output=%+v", v)
+	return
 }
