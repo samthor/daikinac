@@ -2,6 +2,7 @@ package daikinac
 
 import (
 	"fmt"
+	"math"
 	"net/url"
 	"strconv"
 )
@@ -131,7 +132,7 @@ func (ci *ControlInfo) asValues() (v url.Values) {
 		v.Set("pow", "0")
 	}
 	v.Set("mode", strconv.Itoa(int(ci.Mode)))
-	v.Set("stemp", fmt.Sprintf("%.1f", ci.SetTemp))
+	v.Set("stemp", fmt.Sprintf("%.1f", math.Floor(ci.SetTemp*2)/2)) // round to nearest 0.5
 	v.Set("shum", renderHumidity(ci.SetHumidity))
 	v.Set("f_rate", ci.FanRate.encode())
 	v.Set("f_dir", strconv.Itoa(int(ci.FanDir)))
