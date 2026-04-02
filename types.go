@@ -15,6 +15,7 @@ type daikinDecode interface {
 	fromValues(v url.Values) (err error)
 }
 
+// SensorInfo describes the sensors of an aircon unit.
 type SensorInfo struct {
 	HomeTemp       float64
 	HomeHumidity   int
@@ -32,6 +33,7 @@ func (si *SensorInfo) fromValues(v url.Values) (err error) {
 
 // ret=OK,pow=0,mode=4,adv=,stemp=19.0,shum=0,dt1=25.0,dt2=M,dt3=25.0,dt4=19.0,dt5=19.0,dt7=25.0,dh1=AUTO,dh2=50,dh3=0,dh4=0,dh5=0,dh7=AUTO,dhh=50,b_mode=4,b_stemp=19.0,b_shum=0,alert=255
 
+// ControlPower is just a boolean type for On and Off.
 type ControlPower bool
 
 var (
@@ -39,6 +41,7 @@ var (
 	Off = ControlPower(false)
 )
 
+// FanDir describes which direction the fan moves.
 type FanDir int
 
 var (
@@ -48,6 +51,8 @@ var (
 	FanBoth       = FanDir(3)
 )
 
+// FanRate describes how fast to blow the fan.
+// This currently just has FanAuto and FanQuiet; there are more discrete modes.
 type FanRate int
 
 var (
@@ -79,6 +84,7 @@ func (j *FanRate) encode() string {
 	return strconv.Itoa(int(*j))
 }
 
+// Mode describes the operating mode of an aircon unit.
 type Mode int
 
 var (
@@ -89,12 +95,13 @@ var (
 	ModeFan  = Mode(6)
 )
 
+// ControlInfo describes the settings of an aircon unit.
 type ControlInfo struct {
 	Power ControlPower
 	PrimaryControl
 
-	PriorModes []ControlInfoMode // ignored for encoding, "H" mode is put into 0
-	BMode      PrimaryControl    // ignored for encoding
+	PriorModes []ControlInfoMode // ignored for sending, "H" mode is put into 0
+	BMode      PrimaryControl    // ignored for sendingf
 }
 
 type PrimaryControl struct {
@@ -116,6 +123,7 @@ func (pc *PrimaryControl) fromValues(v url.Values, prefix string) {
 	pc.FanDir = FanDir(fanDir)
 }
 
+// ControlInfoMode contains ...
 type ControlInfoMode struct {
 	SetTemp     float64
 	SetHumidity int

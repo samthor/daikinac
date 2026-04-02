@@ -6,6 +6,7 @@ import (
 	"unicode/utf8"
 )
 
+// decodeName decodes a name with %-encoded sub-parts.
 func decodeName(name string) (s string) {
 	out := make([]byte, 0, len(name))
 

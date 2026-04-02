@@ -1,5 +1,5 @@
 module github.com/samthor/daikinac
 
-go 1.24.6
+go 1.25.0
 
-require golang.org/x/sync v0.16.0 // indirect
+require golang.org/x/sync v0.20.0 // indirect

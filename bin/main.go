@@ -12,35 +12,21 @@ import (
 func main() {
 
 	devices := []daikinac.Device{
-		{Host: "192.168.3.146"},
-		{Host: "192.168.3.152"}, // living
-		{Host: "192.168.3.204"},
-		{Host: "192.168.3.225"},
-		{Host: "192.168.3.245", UUID: "f45aab28604811eca7c4737954d1686f"}, // with UUID takes >second per request; slow CPU doing fake SSL?
+		{Host: "192.168.3.145"}, // den
+		{Host: "192.168.3.152"}, // living room
+		{Host: "192.168.3.204"}, // bedroom
+		{Host: "192.168.3.225"}, // loft
+		{Host: "192.168.3.245", UUID: "f45aab28604811eca7c4737954d1686f"}, // office
+		// with UUID takes >second per request; slow CPU doing fake SSL?
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
 	aggregateDevices(ctx, devices)
-
-	// // officeDevice := daikinac.Device{Host: "192.168.3.245", UUID: "f45aab28604811eca7c4737954d1686f"}
-
-	// livingRoomDevice := daikinac.Device{Host: "192.168.3.152"}
-
-	// err := livingRoomDevice.Do(context.TODO(), "/aircon/set_control_info", &daikinac.ControlInfo{
-	// 	Power:   daikinac.Off,
-	// 	Mode:    daikinac.ModeHeat,
-	// 	SetTemp: 23.0,
-	// 	FanRate: daikinac.FanAuto,
-	// 	FanDir:  daikinac.FanNone,
-	// }, nil)
-	// log.Printf("control failure: %v", err)
-
 }
 
 func aggregateDevices(ctx context.Context, d []daikinac.Device) {
-
 	var wg sync.WaitGroup
 
 	type status struct {
@@ -54,6 +40,12 @@ func aggregateDevices(ctx context.Context, d []daikinac.Device) {
 
 		go func() {
 			defer wg.Done()
+
+			now := time.Now()
+			defer func() {
+				log.Printf("addr %s took %v", device.Host, time.Since(now))
+			}()
+
 			s, err := device.FetchAll(ctx)
 			if err != nil {
 				out[i].Error = err
@@ -63,5 +55,8 @@ func aggregateDevices(ctx context.Context, d []daikinac.Device) {
 	}
 
 	wg.Wait()
-	log.Printf("got statuses=%+v", out)
+
+	for _, s := range out {
+		log.Printf("status=%+v", s)
+	}
 }
