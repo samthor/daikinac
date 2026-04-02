@@ -9,14 +9,13 @@ Older devices can be accessed just by IP address.
 
 Newer devices might need you to register a UUID and include in the `Device` struct.
 See "helpers/register.sh" to perform a (one-time) registration of the UUID.
-These devices require SSL with a pinned cert, which can be 10x as slow vs. older devices.
-However, requests made in parallel go faster.
+
+These newer devices internally use SSL with a pinned cert, which can be 10x as slow vs. older devices.
+However, requesting in parallel is faster than doing it in series.
 
 ## Sample
 
-Run `logger.go` or `broadcast.go` for simple demos.
-
-Or, to dial a specific URL and get its sensor info:
+To dial a specific URL and get its status:
 
 ```go
 package main
